@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VelTech Bus Tracker — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ════ PAGE: ADMIN ════ -->
+<div class="page show" id="pg-admin">
+  <div class="adm-hdr">
+    <button class="back-btn" onclick="logout()">‹</button>
+    <div class="adm-logo">🛡️ Admin Panel</div>
+    <div style="display:flex;align-items:center;gap:.6rem;">
+      <div class="pill"><div class="g-dot"></div>Live</div>
+      <button onclick="logout()" style="background:rgba(255,92,92,.12);color:#ff6b6b;border:1px solid rgba(255,92,92,.3);border-radius:9px;padding:.35rem .75rem;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s;" onmouseover="this.style.background='rgba(255,92,92,.25)'" onmouseout="this.style.background='rgba(255,92,92,.12)'">🚪 Logout</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab on" onclick="showAdmSec('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-tab"    onclick="showAdmSec('livemap',this)">🗺️ Live Map</button>
+    <button class="nav-tab"    onclick="showAdmSec('students',this)">🎓 Students</button>
+    <button class="nav-tab"    onclick="showAdmSec('routes',this)">🛣️ Routes</button>
+    <button class="nav-tab"    onclick="showAdmSec('drivers',this)">🚌 Drivers</button>
+    <button class="nav-tab"    onclick="showAdmSec('activity',this)">📋 Log</button>
+    <button class="nav-tab"    onclick="showAdmSec('notifications',this)" id="notif-tab">🔔 Alerts<span class="notif-badge" id="notif-count" style="display:none;">0</span></button>
+    <button class="nav-tab"    onclick="showAdmSec('profile',this)">👤 Profile</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="adm-sec on" id="adm-dashboard">
+    <div class="adm-stats">
+      <div class="adm-stat" style="--c:#f5a623"><div class="sv">3</div><div class="sl">Routes</div></div>
+      <div class="adm-stat" style="--c:#22d17a"><div class="sv" id="adm-online">2</div><div class="sl">Online</div></div>
+      <div class="adm-stat" style="--c:#4a9eff"><div class="sv" id="adm-stucount">0</div><div class="sl">Students</div></div>
+      <div class="adm-stat" style="--c:#a78bfa"><div class="sv">19</div><div class="sl">Stops</div></div>
+    </div>
+    <div class="adm-card">
+      <div class="adm-title">🚌 Bus Status</div>
+      <table class="bus-tbl">
+        <thead><tr><th>Bus</th><th>Route</th><th>Driver</th><th>Status</th><th>Updated</th></tr></thead>
+        <tbody id="dash-bus-tbody">
+          <tr><td><span class="b-badge ba">BUS 01</span></td><td id="d-r1">Virudhunagar</td><td id="d-dr1">Murugan</td><td><div class="on-ind"><div class="on-d" style="background:var(--green)"></div><span style="color:var(--green)">Running</span></div></td><td id="upd-bus01" style="color:var(--muted);font-size:.76rem">—</td></tr>
+          <tr><td><span class="b-badge bb">BUS 02</span></td><td id="d-r2">Sivakasi</td><td id="d-dr2">Selvam</td><td><div class="on-ind"><div class="on-d" style="background:var(--green)"></div><span style="color:var(--green)">Running</span></div></td><td id="upd-bus02" style="color:var(--muted);font-size:.76rem">—</td></tr>
+          <tr><td><span class="b-badge bc">BUS 03</span></td><td id="d-r3">Kovilpatti</td><td id="d-dr3">Rajan</td><td><div class="on-ind"><div class="on-d" style="background:var(--red)"></div><span style="color:var(--red)">Offline</span></div></td><td id="upd-bus03" style="color:var(--muted);font-size:.76rem">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="adm-card">
+      <div class="adm-title">📋 Recent Activity</div>
+      <div id="dash-log">
+        <div class="log-item"><div class="log-ic" style="background:rgba(245,166,35,.1)">🚌</div><div><div class="log-msg">System initialized — 3 routes loaded</div><div class="log-t">Today, 7:00 AM</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE MAP -->
+  <div class="adm-sec" id="adm-livemap">
+    <div class="adm-title">🗺️ All Buses Live — OpenStreetMap</div>
+    <div id="admin-map-wrap"><div id="admin-map"></div></div>
+    <div class="adm-card">
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:.77rem;"><div style="width:11px;height:11px;background:#f5a623;border-radius:3px;"></div>BUS 01 Virudhunagar</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:.77rem;"><div style="width:11px;height:11px;background:#4a9eff;border-radius:3px;"></div>BUS 02 Sivakasi</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:.77rem;"><div style="width:11px;height:11px;background:#22d17a;border-radius:3px;"></div>BUS 03 Kovilpatti</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:.77rem;"><div style="width:11px;height:11px;background:#a78bfa;border-radius:50%;"></div>College</div>
+      </div>
+      <div style="margin-top:.6rem;font-size:.76rem;color:var(--muted);">🔴 Real GPS updates from drivers appear here live via Supabase</div>
+    </div>
+  </div>
+
+  <!-- STUDENTS -->
+  <div class="adm-sec" id="adm-students">
+    <div class="adm-title">🎓 Student Management</div>
+    <div class="adm-card">
+      <div class="adm-title" style="font-size:.82rem;margin-bottom:.7rem;">➕ Add New Student</div>
+      <div class="suc-msg" id="stu-suc">✅ Student added!</div>
+      <div class="err-msg" id="stu-err">❌ Fill all fields / Roll number already exists</div>
+      <div class="form-row">
+        <div><label>Full Name</label><input type="text" id="new-name" placeholder="Student Name"/></div>
+        <div><label>Roll Number</label><input type="text" id="new-roll" placeholder="VT2024001"/></div>
+      </div>
+      <div class="form-row">
+        <div><label>Password</label><input type="password" id="new-pass" placeholder="Set password"/></div>
+        <div><label>Bus Route</label>
+          <select id="new-bus"><option value="bus01">BUS 01</option><option value="bus02">BUS 02</option><option value="bus03">BUS 03</option></select>
+        </div>
+      </div>
+      <button class="btn btn-amber" style="margin-top:.4rem;" onclick="addStudent()">➕ Add Student</button>
+    </div>
+    <div class="adm-card">
+      <div class="adm-title">Registered Students (<span id="stu-total">0</span>)</div>
+      <div style="overflow-x:auto;">
+        <table class="stu-tbl">
+          <thead><tr><th>#</th><th>Name</th><th>Roll No</th><th>Bus</th><th>Action</th></tr></thead>
+          <tbody id="stu-tbody"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem;">No students yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUTES -->
+  <div class="adm-sec" id="adm-routes">
+    <div class="adm-sec-hdr">
+      <div class="adm-title">🛣️ Edit Routes &amp; Stops</div>
+      <button class="add-new-btn" onclick="openAddRouteModal()">➕ Add New Route</button>
+    </div>
+    <div class="suc-msg" id="route-suc">✅ Route saved!</div>
+    <div id="routes-editor"></div>
+  </div>
+
+  <!-- DRIVERS -->
+  <div class="adm-sec" id="adm-drivers">
+    <div class="adm-sec-hdr">
+      <div class="adm-title">🚌 Edit Driver Details</div>
+      <button class="add-new-btn" onclick="openAddDriverModal()">➕ Add New Driver</button>
+    </div>
+    <div class="suc-msg" id="driver-suc">✅ Driver details saved!</div>
+    <div id="drivers-editor"></div>
+    <div class="adm-card" style="margin-top:.5rem;">
+      <div class="adm-title" style="font-size:.82rem;">📱 Driver GPS Instructions</div>
+      <div style="font-size:.79rem;color:var(--muted);line-height:1.75;">
+        • Driver must open this app on their <b style="color:var(--text);">mobile phone</b><br/>
+        • Go to <b style="color:var(--text);">Driver Login</b> → enter name + bus + password<br/>
+        • Tap <b style="color:var(--amber);">"Start Sharing GPS Location"</b><br/>
+        • Phone GPS auto-sends lat/lng to Supabase every 4 seconds<br/>
+        • Students see live bus movement on OpenStreetMap<br/>
+        • Driver password: <b style="color:var(--amber);font-family:monospace;" id="drv-pass-hint">driver123</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY LOG -->
+  <div class="adm-sec" id="adm-activity">
+    <div class="adm-title">📋 Activity Log</div>
+    <div class="adm-card" id="activity-log">
+      <div class="log-item"><div class="log-ic" style="background:rgba(34,209,122,.1)">✅</div><div><div class="log-msg">System started — 3 routes loaded</div><div class="log-t">Today, 7:00 AM</div></div></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="adm-sec" id="adm-notifications">
+    <div class="adm-sec-hdr">
+      <div class="adm-title">🔔 Security Alerts</div>
+      <button class="adm-profile-btn" onclick="clearNotifications()">✓ Mark all read</button>
+    </div>
+    <div class="adm-card" id="notif-list">
+      <div style="text-align:center;color:var(--muted);padding:2rem;font-size:.85rem;">No alerts yet.</div>
+    </div>
+  </div>
+
+  <!-- ADMIN PROFILE -->
+  <div class="adm-sec" id="adm-profile">
+    <div class="adm-title">👤 Admin Profile</div>
+    <div class="setup-banner" id="profile-setup-banner" style="display:none;">
+      <h3>👋 Welcome! Set Up Your Profile</h3>
+      <p>Fill in your admin details. Your organization email will be used to verify your identity during password resets.</p>
+    </div>
+    <div class="adm-card">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar">🛡️</div>
+        <div class="profile-name-big" id="pv-name">Admin</div>
+        <div class="profile-org" id="pv-org">—</div>
+        <div style="margin-top:.4rem;display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:var(--green);font-weight:600;"><div style="width:6px;height:6px;background:var(--green);border-radius:50%;"></div>Active Session</div>
+      </div>
+      <!-- Locked State -->
+      <div id="profile-locked-view">
+        <div class="profile-lock-row">
+          <div class="profile-lock-icon">🔒</div>
+          <div class="profile-lock-text"><strong>Profile is locked</strong>Enter your current password to edit your details</div>
+        </div>
+        <div class="unlock-row">
+          <input type="password" id="profile-unlock-pass" placeholder="Enter current password to unlock"/>
+          <button class="btn btn-amber btn-sm" onclick="unlockProfile()">Unlock</button>
+        </div>
+        <div class="err-msg" id="profile-unlock-err">❌ Incorrect password. Try again.</div>
+        <div class="profile-field"><label>Username</label><input type="text" id="pv-username" disabled/></div>
+        <div class="profile-field"><label>Full Name</label><input type="text" id="pv-fullname" disabled/></div>
+        <div class="profile-field"><label>Organization Name</label><input type="text" id="pv-orgname" disabled/></div>
+        <div class="profile-field"><label>Organization Email</label><input type="email" id="pv-email" disabled/></div>
+        <div class="profile-field"><label>Contact Number</label><input type="text" id="pv-contact" disabled/></div>
+      </div>
+      <!-- Unlocked / Edit State -->
+      <div id="profile-edit-view" style="display:none;">
+        <div style="background:rgba(34,209,122,.08);border:1px solid rgba(34,209,122,.25);border-radius:10px;padding:.65rem .9rem;margin-bottom:1rem;font-size:.79rem;color:var(--green);">🔓 Profile unlocked — you can now edit your details</div>
+        <div class="profile-field"><label>Username</label><input type="text" id="pe-username" placeholder="Admin username"/></div>
+        <div class="profile-field"><label>Full Name</label><input type="text" id="pe-fullname" placeholder="Your full name"/></div>
+        <div class="profile-field"><label>Organization Name</label><input type="text" id="pe-orgname" placeholder="e.g. Vel Tech Multi Tech College"/></div>
+        <div class="profile-field"><label>Organization Email (used for password reset OTP)</label><input type="email" id="pe-email" placeholder="admin@veltech.edu.in"/></div>
+        <div class="profile-field"><label>Contact Number</label><input type="text" id="pe-contact" placeholder="9876543000"/></div>
+        <div class="suc-msg" id="profile-save-suc">✅ Profile saved successfully!</div>
+        <div class="err-msg" id="profile-save-err">❌ Please fill all fields especially the email.</div>
+        <div style="display:flex;gap:.6rem;">
+          <button class="btn btn-amber" onclick="saveAdminProfile()">💾 Save Profile</button>
+          <button class="btn" onclick="lockProfile()" style="background:rgba(255,92,92,.08);color:var(--red);border:1px solid rgba(255,92,92,.3);width:auto;padding:.88rem 1.2rem;">🔒 Lock</button>
+        </div>
+      </div>
+    </div>
+    <!-- Change Password -->
+    <div class="adm-card" id="chpass-card">
+      <div class="adm-title" style="font-size:.85rem;">🔑 Change Password</div>
+      <div id="chpass-locked-msg" style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem;">🔒 Unlock your profile above to change password.</div>
+      <div id="chpass-form" style="display:none;">
+        <div class="profile-field"><label>Current Password</label><input type="password" id="cp-current" placeholder="Current password"/></div>
+        <div class="profile-field"><label>New Password</label><input type="password" id="cp-new" placeholder="Min 6 characters"/></div>
+        <div class="profile-field"><label>Confirm New Password</label><input type="password" id="cp-confirm" placeholder="Re-enter new password"/></div>
+        <div class="suc-msg" id="cp-suc">✅ Password changed successfully!</div>
+        <div class="err-msg" id="cp-err">❌ Check your inputs and try again.</div>
+        <button class="btn btn-amber" onclick="changePasswordFromProfile()">🔒 Update Password</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- ════ MODAL: ADD NEW ROUTE ════ -->
+<div class="modal-overlay" id="modal-add-route">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span style="font-size:1.3rem;">🛣️</span>
+      <div class="modal-title">Add New Route</div>
+      <button class="modal-close" onclick="closeModal('modal-add-route')">✕</button>
+    </div>
+    <div class="suc-msg" id="nr-suc">✅ Route added successfully!</div>
+    <div class="err-msg" id="nr-err">❌ Please fill all required fields.</div>
+    <div class="edit-field"><label>Bus ID (e.g. bus04)</label><input type="text" id="nr-id" placeholder="bus04"/></div>
+    <div class="edit-field"><label>Route Name</label><input type="text" id="nr-name" placeholder="BUS 04 — Town Name"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+      <div class="edit-field"><label>Departure Time</label><input type="text" id="nr-dep" placeholder="7:00 AM"/></div>
+      <div class="edit-field"><label>Arrival Time</label><input type="text" id="nr-arr" placeholder="8:00 AM"/></div>
+      <div class="edit-field"><label>Distance</label><input type="text" id="nr-dist" placeholder="30 km"/></div>
+      <div class="edit-field"><label>Driver Name</label><input type="text" id="nr-driver" placeholder="Driver Name"/></div>
+      <div class="edit-field"><label>Route Color</label>
+        <select id="nr-color">
+          <option value="#f5a623">🟡 Amber</option>
+          <option value="#4a9eff">🔵 Blue</option>
+          <option value="#22d17a">🟢 Green</option>
+          <option value="#fb923c">🟠 Orange</option>
+          <option value="#a78bfa">🟣 Purple</option>
+          <option value="#ff5c5c">🔴 Red</option>
+        </select>
+      </div>
+    </div>
+    <div class="adm-title" style="font-size:.78rem;margin:.5rem 0 .4rem;">Stops (at least 2 required)</div>
+    <div class="stops-new-list" id="nr-stops-list"></div>
+    <button class="add-stop-btn" onclick="addNewRouteStopRow()">+ Add Stop</button>
+    <button class="btn btn-amber" style="margin-top:.8rem;" onclick="submitNewRoute()">➕ Add Route</button>
+  </div>
+</div>
+
+<!-- ════ MODAL: ADD NEW DRIVER ════ -->
+<div class="modal-overlay" id="modal-add-driver">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span style="font-size:1.3rem;">👨‍✈️</span>
+      <div class="modal-title">Add New Driver</div>
+      <button class="modal-close" onclick="closeModal('modal-add-driver')">✕</button>
+    </div>
+    <div class="suc-msg" id="nd-suc">✅ Driver added successfully!</div>
+    <div class="err-msg" id="nd-err">❌ Please fill all required fields.</div>
+    <div class="edit-field"><label>Driver Name</label><input type="text" id="nd-name" placeholder="Driver Full Name"/></div>
+    <div class="edit-field"><label>Phone Number</label><input type="text" id="nd-phone" placeholder="9876543000"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+      <div class="edit-field"><label>Assign to Bus</label><select id="nd-bus"></select></div>
+      <div class="edit-field"><label>Status</label><select id="nd-status"><option value="online">Online</option><option value="offline">Offline</option></select></div>
+    </div>
+    <button class="btn btn-amber" style="margin-top:.4rem;" onclick="submitNewDriver()">➕ Add Driver</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="pages/App.js"></script>
+<script src="pages/admin.js"></script>
+</body>
+</html>

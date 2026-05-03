@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VelTech Bus Tracker — Driver</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ════ DRIVER LOGIN ════ -->
+<div class="page show" id="pg-driver-login" style="background:radial-gradient(ellipse 70% 50% at 50% 0%,#0d2448,var(--bg) 60%);align-items:center;justify-content:center;padding:1.5rem;">
+  <div class="lf-card">
+    <a href="index.html" class="back-lf">← Back to Home</a>
+    <div class="lf-title">🚌 Driver Login</div>
+    <div class="lf-sub">Enter your name, bus and driver password</div>
+    <div class="err-msg" id="lf-err">Invalid credentials</div>
+    <label>Driver Name</label><input type="text" id="drv-login-name" placeholder="Your name"/>
+    <label>Select Your Bus</label>
+    <select id="drv-login-bus">
+      <option value="bus01">BUS 01 — Virudhunagar</option>
+      <option value="bus02">BUS 02 — Sivakasi</option>
+      <option value="bus03">BUS 03 — Kovilpatti</option>
+    </select>
+    <label>Driver Password</label><input type="password" id="drv-login-pass" placeholder="••••••••"/>
+    <button class="btn btn-blue" onclick="loginDriver()">Login as Driver</button>
+  </div>
+</div>
+
+<!-- ════ DRIVER PANEL ════ -->
+<div class="page" id="pg-driver">
+  <div class="top-hdr">
+    <button class="back-btn" onclick="drvStop();showPage('pg-driver-login');">‹</button>
+    <div class="hdr-info"><h2>Driver Panel</h2><p id="drv-hdr-sub">Vel Tech Multi Tech</p></div>
+    <div class="hdr-live"><div class="hdr-ldot"></div>GPS</div>
+  </div>
+  <div style="padding:1rem;">
+    <div class="drv-card">
+      <div id="drv-form">
+        <label>Bus Route</label>
+        <select id="drv-bus">
+          <option value="bus01">BUS 01 — Virudhunagar</option>
+          <option value="bus02">BUS 02 — Sivakasi</option>
+          <option value="bus03">BUS 03 — Kovilpatti</option>
+        </select>
+        <button class="btn btn-blue" onclick="drvStart()" style="margin-bottom:.7rem;">📍 Start Sharing GPS Location</button>
+        <button class="btn" onclick="drvStop();showPage('pg-driver-login');" style="background:rgba(255,92,92,.1);color:var(--red);border:1px solid rgba(255,92,92,.3);">🚪 Logout</button>
+      </div>
+      <button class="btn btn-red" id="drv-stop-btn" style="display:none;" onclick="drvStop()">⛔ Stop Sharing</button>
+      <div class="d-status" id="drv-status">
+        <div class="d-live-row"><div class="d-ldot"></div>Sharing Live Location</div>
+        <div class="d-stat-row"><span class="dk">Bus</span><span class="dv" id="ds-bus">—</span></div>
+        <div class="d-stat-row"><span class="dk">Driver</span><span class="dv" id="ds-name">—</span></div>
+        <div class="d-stat-row"><span class="dk">Latitude</span><span class="dv" id="ds-lat">—</span></div>
+        <div class="d-stat-row"><span class="dk">Longitude</span><span class="dv" id="ds-lng">—</span></div>
+        <div class="d-stat-row"><span class="dk">Accuracy</span><span class="dv" id="ds-acc">—</span></div>
+        <div class="d-stat-row"><span class="dk">Updated</span><span class="dv" id="ds-time">—</span></div>
+      </div>
+      <div class="gps-note">
+        <strong>📱 How to Connect Mobile GPS</strong>
+        1. Open this page on your <b>mobile phone browser</b><br/>
+        2. When prompted, tap <b>"Allow Location Access"</b><br/>
+        3. Select your bus and tap <b>"Start Sharing GPS"</b><br/>
+        4. Your location auto-sends to Supabase every 4 sec<br/>
+        5. Students see your bus moving live on their map ✅<br/><br/>
+        <b style="color:var(--amber);">⚠️ Keep this page open while driving!</b>
+      </div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+
+var SUPA_URL = (window.VELTECH_CONFIG && window.VELTECH_CONFIG.SUPABASE_URL) || '';
+var SUPA_KEY = (window.VELTECH_CONFIG && window.VELTECH_CONFIG.SUPABASE_KEY) || '';
+var db = null;
+try { if (SUPA_URL && SUPA_KEY) db = window.supabase.createClient(SUPA_URL, SUPA_KEY); } catch(e) {}
+
+var DRIVER_PASS = (function(){ try { return localStorage.getItem('vt_driver_pass') || 'driver123'; } catch(e){ return 'driver123'; } }());
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('show'); });
+  document.getElementById(id).classList.add('show');
+  window.scrollTo(0,0);
+}
+
+function loginDriver() {
+  var name = document.getElementById('drv-login-name').value.trim();
+  var bus  = document.getElementById('drv-login-bus').value;
+  var pass = document.getElementById('drv-login-pass').value;
+  var err  = document.getElementById('lf-err');
+  err.style.display = 'none';
+  if (!name) { err.textContent = '❌ Enter your name'; err.style.display = 'block'; return; }
+  if (pass !== DRIVER_PASS) { err.textContent = '❌ Wrong driver password'; err.style.display = 'block'; return; }
+  document.getElementById('drv-hdr-sub').textContent = name + ' · ' + bus.toUpperCase();
+  document.getElementById('drv-bus').value = bus;
+  document.getElementById('ds-name').textContent = name;
+  showPage('pg-driver');
+}
+
+var drvWatchId = null;
+function drvStart() {
+  if (!navigator.geolocation) { alert('GPS not supported! Open on mobile Chrome/Safari.'); return; }
+  var bus  = document.getElementById('drv-bus').value;
+  var name = document.getElementById('ds-name').textContent;
+  document.getElementById('drv-form').style.display = 'none';
+  document.getElementById('drv-stop-btn').style.display = 'block';
+  document.getElementById('drv-status').style.display  = 'block';
+  document.getElementById('ds-bus').textContent = bus.toUpperCase();
+  drvWatchId = navigator.geolocation.watchPosition(
+    function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+      var acc = pos.coords.accuracy ? Math.round(pos.coords.accuracy) + 'm' : '—';
+      document.getElementById('ds-lat').textContent  = lat;
+      document.getElementById('ds-lng').textContent  = lng;
+      document.getElementById('ds-acc').textContent  = acc;
+      document.getElementById('ds-time').textContent = new Date().toLocaleTimeString();
+      if (db) {
+        db.from('buses').upsert(
+          { bus_no: bus, lat: parseFloat(lat), lng: parseFloat(lng), driver: name, updated_at: new Date().toISOString() },
+          { onConflict: 'bus_no' }
+        ).catch(function(){});
+      }
+    },
+    function(e) {
+      var msgs = { 1: 'Permission denied — allow location in browser settings', 2: 'GPS signal not available', 3: 'GPS timeout — try again' };
+      alert('GPS Error: ' + (msgs[e.code] || e.message));
+    },
+    { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+  );
+}
+
+function drvStop() {
+  if (drvWatchId) { navigator.geolocation.clearWatch(drvWatchId); drvWatchId = null; }
+  document.getElementById('drv-form').style.display       = 'block';
+  document.getElementById('drv-stop-btn').style.display   = 'none';
+  document.getElementById('drv-status').style.display     = 'none';
+}
+</script>
+</body>
+</html>

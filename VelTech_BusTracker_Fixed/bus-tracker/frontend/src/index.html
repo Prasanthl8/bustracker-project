@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VelTech Bus Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ════ PAGE: LOGIN ════ -->
+<div class="page show" id="pg-login">
+  <div class="login-logo">
+    <div class="bus-icon">🚌</div>
+    <h1>VelTech <span>Bus</span> Tracker</h1>
+    <p>Vel Tech Multi Tech Engineering College</p>
+    <div class="pill" style="margin-top:.7rem;"><div class="g-dot"></div>3 Routes Active</div>
+  </div>
+  <div class="role-cards">
+    <div class="role-card" style="--c:#f5a623" onclick="showLoginForm('admin')">
+      <div class="rc-icon">🛡️</div>
+      <div class="rc-body"><div class="rc-title">Admin Login</div><div class="rc-desc">Full control — manage students, routes, drivers</div></div>
+      <span style="color:var(--muted);font-size:1.2rem;">›</span>
+    </div>
+    <div class="role-card" style="--c:#4a9eff" onclick="showLoginForm('driver')">
+      <div class="rc-icon">🚌</div>
+      <div class="rc-body"><div class="rc-title">Driver Login</div><div class="rc-desc">Share your live GPS location</div></div>
+      <span style="color:var(--muted);font-size:1.2rem;">›</span>
+    </div>
+    <div class="role-card" style="--c:#22d17a" onclick="showLoginForm('student')">
+      <div class="rc-icon">🎓</div>
+      <div class="rc-body"><div class="rc-title">Student Login</div><div class="rc-desc">Track your bus live on map</div></div>
+      <span style="color:var(--muted);font-size:1.2rem;">›</span>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;font-size:.72rem;color:var(--muted);text-align:center;">Vel Tech Multi Tech Engineering College · Bus Tracking System</div>
+</div>
+
+<!-- ════ PAGE: LOGIN FORM ════ -->
+<div class="page" id="pg-loginform">
+  <div class="lf-card" id="lf-card">
+    <div class="back-lf" onclick="goto('pg-login')">← Back to Login</div>
+    <div class="lf-title" id="lf-title">Login</div>
+    <div class="lf-sub" id="lf-sub">Enter your credentials</div>
+    <div class="err-msg" id="lf-err">Invalid credentials</div>
+
+    <!-- Admin Login -->
+    <div id="form-admin" style="display:none;">
+      <div id="adm-step-login">
+        <label>Username</label><input type="text" id="adm-user" placeholder="Enter username"/>
+        <label>Password</label><input type="password" id="adm-pass" placeholder="Enter password"/>
+        <button class="btn btn-amber" onclick="loginAdmin()">Login as Admin</button>
+        <div style="text-align:center;margin-top:.8rem;">
+          <span onclick="showForgotStep(1)" style="font-size:.8rem;color:var(--amber);cursor:pointer;text-decoration:underline;">🔑 Forgot Password?</span>
+        </div>
+      </div>
+      <div id="adm-step-email" style="display:none;">
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:.9rem;">Enter the admin email address to receive an OTP.</div>
+        <label>Admin Email</label><input type="email" id="fp-email" placeholder="Enter your admin email" autocomplete="off"/>
+        <div class="err-msg" id="fp-email-err">❌ Please enter a valid email.</div>
+        <button class="btn btn-amber" id="send-otp-btn" onclick="sendOtp()">📧 Send OTP</button>
+        <div style="text-align:center;margin-top:.7rem;"><span onclick="showForgotStep(0)" style="font-size:.78rem;color:var(--muted);cursor:pointer;">← Back to Login</span></div>
+      </div>
+      <div id="adm-step-otp" style="display:none;">
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:.9rem;">A 6-digit OTP has been sent to <b id="fp-email-show" style="color:var(--text);"></b>. Check your inbox.</div>
+        <label>Enter OTP</label><input type="text" id="fp-otp-input" placeholder="6-digit OTP" maxlength="6" style="letter-spacing:.2em;font-size:1.1rem;text-align:center;"/>
+        <div class="err-msg" id="fp-otp-err">❌ Incorrect OTP. Please try again.</div>
+        <button class="btn btn-amber" onclick="verifyOtp()">✅ Verify OTP</button>
+        <div style="text-align:center;margin-top:.7rem;"><span onclick="showForgotStep(1)" style="font-size:.78rem;color:var(--muted);cursor:pointer;">← Resend OTP</span></div>
+      </div>
+      <div id="adm-step-newpass" style="display:none;">
+        <div style="font-size:.82rem;color:var(--green);margin-bottom:.9rem;">✅ OTP verified! Set your new password below.</div>
+        <label>New Password</label><input type="password" id="fp-newpass" placeholder="New password (min 6 chars)"/>
+        <label>Confirm New Password</label><input type="password" id="fp-confirmpass" placeholder="Re-enter new password"/>
+        <div class="err-msg" id="fp-pass-err">❌ Passwords do not match or too short.</div>
+        <div class="suc-msg" id="fp-pass-suc">✅ Password changed! Redirecting to login...</div>
+        <button class="btn btn-amber" onclick="changeAdminPassword()">🔒 Change Password</button>
+      </div>
+    </div>
+
+    <!-- Driver Login -->
+    <div id="form-driver" style="display:none;">
+      <label>Driver Name</label><input type="text" id="drv-login-name" placeholder="Your name"/>
+      <label>Select Your Bus</label>
+      <select id="drv-login-bus">
+        <option value="bus01">BUS 01 — Virudhunagar</option>
+        <option value="bus02">BUS 02 — Sivakasi</option>
+        <option value="bus03">BUS 03 — Kovilpatti</option>
+      </select>
+      <label>Driver Password</label><input type="password" id="drv-login-pass" placeholder="••••••••"/>
+      <button class="btn btn-blue" onclick="loginDriver()">Login as Driver</button>
+    </div>
+
+    <!-- Student Login -->
+    <div id="form-student" style="display:none;">
+      <label>Roll Number</label><input type="text" id="stu-roll" placeholder="e.g. VT2024001"/>
+      <label>Password</label><input type="password" id="stu-pass" placeholder="••••••••"/>
+      <button class="btn btn-green" onclick="loginStudent()">Login as Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PAGE: STUDENT ════ -->
+<div class="page" id="pg-student">
+  <div class="top-hdr">
+    <button class="back-btn" onclick="stuGoHome()">‹</button>
+    <div class="hdr-info"><h2 id="stu-hdr-title">Student Tracker</h2><p id="stu-hdr-sub">Welcome</p></div>
+    <div class="hdr-live"><div class="hdr-ldot"></div>LIVE</div>
+  </div>
+  <div id="stu-home">
+    <div class="stu-hero">
+      <div class="h-icon">🎓</div>
+      <h2 id="stu-welcome">Select Your Bus</h2>
+      <p>Choose your assigned college bus route</p>
+    </div>
+    <div style="padding:0 1.2rem 1rem;">
+      <div class="sec-lbl">Available Routes</div>
+      <div id="stu-route-list"></div>
+      <button class="btn" onclick="logout()" style="background:rgba(255,92,92,.08);color:var(--red);border:1px solid rgba(255,92,92,.25);font-size:.82rem;padding:.6rem;margin-top:.5rem;">🚪 Logout</button>
+    </div>
+  </div>
+  <div id="stu-track">
+    <div class="map-wrap">
+      <div id="stu-map"></div>
+      <div class="map-near-box">Near: <strong id="nearStop">—</strong></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-lbl">ETA</div><div class="stat-val" id="v-eta" style="color:var(--amber)">—</div><div class="stat-sub">minutes</div></div>
+      <div class="stat"><div class="stat-lbl">Stops Left</div><div class="stat-val" id="v-stops" style="color:var(--orange)">—</div><div class="stat-sub">before you</div></div>
+      <div class="stat"><div class="stat-lbl">Distance</div><div class="stat-val" id="v-dist" style="color:var(--purple)">—</div><div class="stat-sub">km away</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" id="tb-stops" onclick="showTab('stops',this)">🛑 Stops</button>
+      <button class="tab" id="tb-info"  onclick="showTab('info',this)">ℹ️ Info</button>
+      <button class="tab" id="tb-alerts" onclick="showTab('alerts',this)">🔔 Alerts</button>
+    </div>
+    <div class="tabpanel on" id="tp-stops"><div id="stops-list"></div></div>
+    <div class="tabpanel" id="tp-info">
+      <div class="info-grid">
+        <div class="info-tile"><div class="i-lbl">Bus No</div><div class="i-val" style="color:var(--amber)" id="i-busno">—</div></div>
+        <div class="info-tile"><div class="i-lbl">Driver</div><div class="i-val" id="i-driver">—</div></div>
+        <div class="info-tile"><div class="i-lbl">Total Stops</div><div class="i-val" style="color:var(--blue)" id="i-stops">—</div></div>
+        <div class="info-tile"><div class="i-lbl">Distance</div><div class="i-val" id="i-tdist">—</div></div>
+        <div class="info-tile"><div class="i-lbl">Departure</div><div class="i-val" id="i-dep">—</div></div>
+        <div class="info-tile"><div class="i-lbl">Arrival</div><div class="i-val" style="color:var(--green)" id="i-arr">—</div></div>
+        <div class="info-tile"><div class="i-lbl">Speed</div><div class="i-val">~38 km/h</div></div>
+        <div class="info-tile"><div class="i-lbl">Status</div><div class="i-val" style="color:var(--green)">On Time</div></div>
+      </div>
+    </div>
+    <div class="tabpanel" id="tp-alerts">
+      <div class="alert-row"><div class="al-l"><div class="al-icon">📍</div><div><div class="al-title">Bus Nearby Alert</div><div class="al-desc">When bus is 1 km away</div></div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="alert-row"><div class="al-l"><div class="al-icon">🛑</div><div><div class="al-title">Next Stop Alert</div><div class="al-desc">Before your stop arrives</div></div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="alert-row"><div class="al-l"><div class="al-icon">⚠️</div><div><div class="al-title">Delay Alerts</div><div class="al-desc">If bus is running late</div></div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <button class="save-btn" onclick="alert('✅ Preferences saved!')">Save Preferences</button>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ════ PAGE: DRIVER ════ -->
+<div class="page" id="pg-driver">
+  <div class="top-hdr">
+    <button class="back-btn" onclick="drvStop();logout();">‹</button>
+    <div class="hdr-info"><h2>Driver Panel</h2><p id="drv-hdr-sub">Vel Tech Multi Tech</p></div>
+    <div class="hdr-live"><div class="hdr-ldot"></div>GPS</div>
+  </div>
+  <div style="padding:1rem;">
+    <div class="drv-card">
+      <div id="drv-form">
+        <label>Bus Route</label>
+        <select id="drv-bus">
+          <option value="bus01">BUS 01 — Virudhunagar</option>
+          <option value="bus02">BUS 02 — Sivakasi</option>
+          <option value="bus03">BUS 03 — Kovilpatti</option>
+        </select>
+        <button class="btn btn-blue" onclick="drvStart()" style="margin-bottom:.7rem;">📍 Start Sharing GPS Location</button>
+        <button class="btn" onclick="drvStop();logout();" style="background:rgba(255,92,92,.1);color:var(--red);border:1px solid rgba(255,92,92,.3);">🚪 Logout</button>
+      </div>
+      <button class="btn btn-red" id="drv-stop-btn" style="display:none;" onclick="drvStop()">⛔ Stop Sharing</button>
+      <div class="d-status" id="drv-status">
+        <div class="d-live-row"><div class="d-ldot"></div>Sharing Live Location</div>
+        <div class="d-stat-row"><span class="dk">Bus</span><span class="dv" id="ds-bus">—</span></div>
+        <div class="d-stat-row"><span class="dk">Driver</span><span class="dv" id="ds-name">—</span></div>
+        <div class="d-stat-row"><span class="dk">Latitude</span><span class="dv" id="ds-lat">—</span></div>
+        <div class="d-stat-row"><span class="dk">Longitude</span><span class="dv" id="ds-lng">—</span></div>
+        <div class="d-stat-row"><span class="dk">Accuracy</span><span class="dv" id="ds-acc">—</span></div>
+        <div class="d-stat-row"><span class="dk">Updated</span><span class="dv" id="ds-time">—</span></div>
+      </div>
+      <div class="gps-note">
+        <strong>📱 How to Connect Mobile GPS</strong>
+        1. Open this page on your <b>mobile phone browser</b><br/>
+        2. When prompted, tap <b>"Allow Location Access"</b><br/>
+        3. Select your bus and tap <b>"Start Sharing GPS"</b><br/>
+        4. Your location auto-sends to Supabase every 4 sec<br/>
+        5. Students see your bus moving live on their map ✅<br/><br/>
+        <b style="color:var(--amber);">⚠️ Keep this page open while driving!</b>
+      </div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- Scripts -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="pages/App.js" type="module"></script>
+<script src="pages/student.js"></script>
+<script src="pages/driver.js"></script>
+<script src="pages/auth.js"></script>
+</body>
+</html>

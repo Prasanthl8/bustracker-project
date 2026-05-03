@@ -1,0 +1,13 @@
+{
+  "name": "veltech-bus-tracker-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for VelTech Bus Tracker",
+  "scripts": {
+    "start": "serve src",
+    "build": "echo 'Static HTML — no build step required'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}
