@@ -3,7 +3,7 @@
 A real-time bus tracking web application built solo, supporting 3 live routes with role-based access for admins and passengers.
 
 ## 🔗 Live Demo
-> Add your deployed link here if available
+
 
 ## 📌 Features
 - Real-time GPS bus position updates via Supabase
